@@ -14,10 +14,15 @@
 
   overflow: auto;
 
-  display: flex;
-  justify-content: center;
+  // display: flex;
+  // justify-content: center;
+  // align-items: center;
+  // flex-flow: wrap;
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+  justify-items: center;
   align-items: center;
-  flex-flow: wrap;
 
   .empty-state {
     justify-content: center;
@@ -27,4 +32,9 @@
   svg {
     transform-origin: center;
   }
+}
+
+.viewport-container {
+  grid-column: 1 / 1;
+  grid-row: 1 / 1;
 }

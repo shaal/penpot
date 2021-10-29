@@ -44,6 +44,7 @@
         local   (mf/deref refs/viewer-local)
 
         nav-scroll (:nav-scroll local)
+        current-viewport-ref (mf/use-ref nil)
 
         page-id (or page-id (-> file :data :pages first))
 
@@ -55,6 +56,9 @@
         zoom    (:zoom local)
         frames  (:frames page)
         frame   (get frames index)
+
+        prev-frame (when (> index 0)
+                     (get frames (dec index)))
 
         size    (mf/use-memo
                  (mf/deps frame zoom)
@@ -94,12 +98,23 @@
            (events/unlistenByKey key1)))))
 
     (mf/use-layout-effect
-      (mf/deps nav-scroll)
+      (mf/deps nav-scroll index)
       (fn []
         (when (number? nav-scroll)
           (let [viewer-section (dom/get-element "viewer-section")]
             (st/emit! (dv/reset-nav-scroll))
-            (dom/set-scroll-pos! viewer-section nav-scroll)))))
+            (dom/set-scroll-pos! viewer-section nav-scroll)))
+        (let [viewport-container (mf/ref-val current-viewport-ref)]
+          (case index
+            1 (.animate viewport-container
+                        [#js {:opacity "0"}
+                         #js {:opacity "100"}]
+                        1000)
+            2 (.animate viewport-container
+                        [#js {:left "-100%"}
+                         #js {:left "0"}]
+                        1000)
+            nil))))
 
     [:div {:class (dom/classnames
                    :force-visible (:show-thumbnails local)
@@ -139,8 +154,27 @@
              :section section
              :local local}]
 
+           [:*
+             (when prev-frame
+               (let [size-prev (calculate-size prev-frame zoom)]
+                 [:div.viewport-container
+                  {:style {:width (:width size-prev)
+                           :height (:height size-prev)
+                           :position "relative"}}
+
+                  [:& interactions/viewport
+                   {:frame prev-frame
+                    :base-frame prev-frame
+                    :frame-offset (gpt/point 0 0)
+                    :size size-prev
+                    :page page
+                    :file file
+                    :users users
+                    :interactions-mode :hide}]]))
+
            [:div.viewport-container
-            {:style {:width (:width size)
+            {:ref current-viewport-ref
+             :style {:width (:width size)
                      :height (:height size)
                      :position "relative"}}
 
@@ -189,7 +223,7 @@
                     :page page
                     :file file
                     :users users
-                    :interactions-mode interactions-mode}]]]))]))]]]))
+                    :interactions-mode interactions-mode}]]]))]]))]]]))
 
 ;; --- Component: Viewer Page
 
