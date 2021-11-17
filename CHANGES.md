@@ -4,6 +4,9 @@
 
 ### :boom: Breaking changes
 ### :sparkles: New features
+
+- Animations in interactions [Taiga #2244](https://tree.taiga.io/project/penpot/us/2244).
+
 ### :bug: Bugs fixed
 
 - Fix problems when exporting all artboards [Taiga #2234](https://tree.taiga.io/project/penpot/issue/2234).
