@@ -446,6 +446,45 @@
       (t/is (= :ease-in (-> new-interaction :animation-opts :easing)))))))
 
 
+(t/deftest option-way
+  (let [i1 cti/default-interaction
+        i2 (cti/set-animation-type cti/default-interaction :slide)]
+
+  (t/testing "Has way"
+    (t/is (not (cti/has-way i1)))
+    (t/is (cti/has-way i2)))
+
+  (t/testing "Set way"
+    (let [new-interaction (cti/set-way i2 :out)]
+      (t/is (= :out (-> new-interaction :animation-opts :way)))))))
+
+
+(t/deftest option-direction
+  (let [i1 cti/default-interaction
+        i2 (cti/set-animation-type cti/default-interaction :push)]
+
+  (t/testing "Has direction"
+    (t/is (not (cti/has-direction i1)))
+    (t/is (cti/has-direction i2)))
+
+  (t/testing "Set direction"
+    (let [new-interaction (cti/set-direction i2 :left)]
+      (t/is (= :left (-> new-interaction :animation-opts :direction)))))))
+
+
+(t/deftest option-offset-effect
+  (let [i1 cti/default-interaction
+        i2 (cti/set-animation-type cti/default-interaction :slide)]
+
+  (t/testing "Has offset-effect"
+    (t/is (not (cti/has-offset-effect i1)))
+    (t/is (cti/has-offset-effect i2)))
+
+  (t/testing "Set offset-effect"
+    (let [new-interaction (cti/set-offset-effect i2 true)]
+      (t/is (= true (-> new-interaction :animation-opts :offset-effect)))))))
+
+
 (t/deftest modify-interactions
   (let [i1 (cti/set-action-type cti/default-interaction :open-overlay)
         i2 (cti/set-action-type cti/default-interaction :close-overlay)

@@ -502,6 +502,39 @@
   (assert (has-easing interaction))
   (assoc-in interaction [:animation-opts :easing] easing))
 
+(defn has-way
+  [interaction]
+  (= :slide (:animation-type interaction)))
+
+(defn set-way
+  [interaction way]
+  (us/verify ::interaction interaction)
+  (us/verify ::way way)
+  (assert (has-way interaction))
+  (assoc-in interaction [:animation-opts :way] way))
+
+(defn has-direction
+  [interaction]
+  (#{:slide :push} (:animation-type interaction)))
+
+(defn set-direction
+  [interaction direction]
+  (us/verify ::interaction interaction)
+  (us/verify ::direction direction)
+  (assert (has-direction interaction))
+  (assoc-in interaction [:animation-opts :direction] direction))
+
+(defn has-offset-effect
+  [interaction]
+  (= :slide (:animation-type interaction)))
+
+(defn set-offset-effect
+  [interaction offset-effect]
+  (us/verify ::interaction interaction)
+  (us/verify ::offset-effect offset-effect)
+  (assert (has-offset-effect interaction))
+  (assoc-in interaction [:animation-opts :offset-effect] offset-effect))
+
 ;; -- Helpers for interactions
 
 (defn add-interaction
