@@ -61,25 +61,37 @@
                      :down})
 (s/def ::offset-effect ::us/boolean)
 
-(defmulti animation-opts-spec :animation-type)
-
-(defmethod animation-opts-spec :dissolve [_]
+(s/def :animation-dissolve/animation-opts
   (s/keys :req-un [::duration
                    ::easing]))
 
-(defmethod animation-opts-spec :slide [_]
+(s/def :animation-slide/animation-opts
   (s/keys :req-un [::duration
                    ::easing
                    ::way
                    ::direction
                    ::offset-effect]))
 
-(defmethod animation-opts-spec :push [_]
+(s/def :animation-push/animation-opts
   (s/keys :req-un [::duration
                    ::easing
                    ::direction]))
 
-(s/def ::animation-opts
+(defmulti animation-opts-spec :animation-type)
+
+(defmethod animation-opts-spec nil [_]
+  (s/keys))
+
+(defmethod animation-opts-spec :dissolve [_]
+  (s/keys :req-un [:animation-dissolve/animation-opts]))
+
+(defmethod animation-opts-spec :slide [_]
+  (s/keys :req-un [:animation-slide/animation-opts]))
+
+(defmethod animation-opts-spec :push [_]
+  (s/keys :req-un [:animation-push/animation-opts]))
+
+(s/def ::animation-opts-cosa
   (s/multi-spec animation-opts-spec ::animation-type))
 
 ;; -- Options depending on action type
@@ -109,10 +121,11 @@
 (defmulti action-opts-spec :action-type)
 
 (defmethod action-opts-spec :navigate [_]
-  (s/keys :opt-un [::destination
-                   ::preserve-scroll
-                   ::animation-type
-                   ::animation-opts]))
+  (s/merge
+    (s/keys :opt-un [::destination
+                     ::preserve-scroll
+                     ::animation-type])
+    ::animation-opts-cosa))
 
 (defmethod action-opts-spec :open-overlay [_]
   (s/keys :req-un [::destination
@@ -121,7 +134,7 @@
           :opt-un [::close-click-outside
                    ::background-overlay
                    ::animation-type
-                   ::animation-opts]))
+                   ::animation-opts-cosa]))
 
 (defmethod action-opts-spec :toggle-overlay [_]
   (s/keys :req-un [::destination
@@ -130,12 +143,12 @@
           :opt-un [::close-click-outside
                    ::background-overlay
                    ::animation-type
-                   ::animation-opts]))
+                   ::animation-opts-cosa]))
 
 (defmethod action-opts-spec :close-overlay [_]
   (s/keys :opt-un [::destination
                    ::animation-type
-                   ::animation-opts]))
+                   ::animation-opts-cosa]))
 
 (defmethod action-opts-spec :prev-screen [_]
   (s/keys :req-un []))
@@ -398,7 +411,8 @@
 
 (defn invalid-animation?
   [interaction]
-  ; Some specific combinations are forbidden
+  ; Some specific combinations are forbidden, but may occur if the action type
+  ; is changed from a type that allows the animation to another one that doesn't.
   (or (and (#{:open-overlay :close-overlay :toggle-overlay} (:action-type interaction))
            (= :push (:animation-type interaction)))
       (and (= :open-overlay (:action-type interaction))
@@ -406,39 +420,87 @@
            (= :out (:way (:animation-opts interaction))))
       (and (= :close-overlay (:action-type interaction))
            (= :slide (:animation-type interaction))
-           (= :in (:way interaction)))))
+           (= :in (:way (:animation-opts interaction))))))
 
 (defn set-animation-type
   [interaction animation-type]
+  ;; (js/console.log "interaction" (clj->js interaction))
+  ;; (js/console.log "animation-type" (clj->js animation-type))
   (us/verify ::interaction interaction)
-  (us/verify ::animation-type animation-type)
+  (us/verify (s/nilable ::animation-type) animation-type)
   (assert (has-animation interaction))
   (let [new-interaction
         (if (= (:animation-type interaction) animation-type)
           interaction
-          (case animation-type
-            :dissolve
-            (update interaction :animation-opts
-                    #(assoc % :duration (get interaction :duration 300)
-                              :easing (get interaction :easing) :linear))
+          (if (nil? animation-type)
+            (dissoc interaction :animation-type)
+            (cond-> interaction
+              :always
+              (assoc :animation-type animation-type)
 
-            :slide
-            (update interaction :animation-opts
-                    #(assoc % :duration (get interaction :duration 300)
-                              :easing (get interaction :easing :linear)
-                              :way (get interaction :way :in)
-                              :direction (get interaction :direction :right)
-                              :offset-effect (get interaction :offset-effect false)))
-            :push
-            (update interaction :animation-opts
-                    #(assoc % :duration (get interaction :duration 300)
-                              :easing (get interaction :easing :linear)
-                              :direction (get interaction :direction :right)))
+              ;; (= animation-type :dissolve)
+              ;; (assoc :duration (get-in interaction [:animation-opts :duration] 300)
+              ;;        :easing (get-in interaction [:animation-opts :easing] :linear))
+              ;;
+              ;; (= animation-type :slide)
+              ;; (assoc :duration (get-in interaction [:animation-opts :duration] 300)
+              ;;        :easing (get-in interaction [:animation-opts :easing] :linear)
+              ;;        :way (get-in interaction [:animation-opts :way] :in)
+              ;;        :direction (get-in interaction [:animation-opts :direction] :right)
+              ;;        :offset-effect (get-in interaction [:animation-opts :offset-effect] false))
+              ;;
+              ;; (= animation-type :push)
+              ;; (assoc :duration (get-in interaction [:animation-opts :duration] 300)
+              ;;        :easing (get-in interaction [:animation-opts :easing] :linear)
+              ;;        :direction (get-in interaction [:animation-opts :direction] :right)))
 
-            interaction))]
+              (= animation-type :dissolve)
+              (update :animation-opts
+                      #(assoc %
+                              :duration (get-in interaction [:animation-opts :duration] 300)
+                              :easing (get-in interaction [:animation-opts :easing] :linear)))
+
+              (= animation-type :slide)
+              (update :animation-opts
+                      #(assoc %
+                              :duration (get-in interaction [:animation-opts :duration] 300)
+                              :easing (get-in interaction [:animation-opts :easing] :linear)
+                              :way (get-in interaction [:animation-opts :way] :in)
+                              :direction (get-in interaction [:animation-opts :direction] :right)
+                              :offset-effect (get-in interaction [:animation-opts :offset-effect] false)))
+
+              (= animation-type :push)
+              (update :animation-opts
+                      #(assoc %
+                              :duration (get-in interaction [:animation-opts :duration] 300)
+                              :easing (get-in interaction [:animation-opts :easing] :linear)
+                              :direction (get-in interaction [:animation-opts :direction] :right))))
+          ))]
 
     (assert (not (invalid-animation? new-interaction)))
     new-interaction))
+
+(defn has-duration
+  [interaction]
+  (#{:dissolve :slide :push} (:animation-type interaction)))
+
+(defn set-duration
+  [interaction duration]
+  (us/verify ::interaction interaction)
+  (us/verify ::duration duration)
+  (assert (has-duration interaction))
+  (assoc-in interaction [:animation-opts :duration] duration))
+
+(defn has-easing
+  [interaction]
+  (#{:dissolve :slide :push} (:animation-type interaction)))
+
+(defn set-easing
+  [interaction easing]
+  (us/verify ::interaction interaction)
+  (us/verify ::easing easing)
+  (assert (has-easing interaction))
+  (assoc-in interaction [:animation-opts :easing] easing))
 
 ;; -- Helpers for interactions
 

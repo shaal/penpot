@@ -73,6 +73,12 @@
    :bottom-right (tr "workspace.options.interaction-pos-bottom-right")
    :bottom-center (tr "workspace.options.interaction-pos-bottom-center")})
 
+(defn- animation-type-names
+  []
+  {:dissolve (tr "workspace.options.interaction-animation-dissolve")
+   :slide (tr "workspace.options.interaction-animation-slide")
+   :push (tr "workspace.options.interaction-animation-push")})
+
 (def flow-for-rename-ref
   (l/derived (l/in [:workspace-local :flow-for-rename]) st/state))
 
@@ -237,7 +243,12 @@
         change-background-overlay
         (fn [event]
           (let [value (-> event dom/get-target dom/checked?)]
-            (update-interaction index #(cti/set-background-overlay % value))))]
+            (update-interaction index #(cti/set-background-overlay % value))))
+
+        change-animation-type
+        (fn [event]
+          (let [value (-> event dom/get-target dom/get-value d/read-string)]
+            (update-interaction index #(cti/set-animation-type % value))))]
 
     [:*
      [:div.element-set-options-group {:class (dom/classnames
@@ -382,7 +393,18 @@
                        :checked background-overlay?
                        :on-change change-background-overlay}]
               [:label {:for (str "background-" index)}
-               (tr "workspace.options.interaction-background")]]]])])]]))
+               (tr "workspace.options.interaction-background")]]]])
+
+         ; Animation select
+         [:div.interactions-element.separator
+          [:span.element-set-subtitle.wide (tr "workspace.options.interaction-animation")]
+          [:select.input-select
+           {:value (str (:animation-type interaction))
+            :on-change change-animation-type}
+           [:option {:value ""} (tr "workspace.options.interaction-animation-none")]
+           (for [[value name] (animation-type-names)]
+             [:option {:value (str value)} name])]]
+])]]))
 
 (mf/defc interactions-menu
   [{:keys [shape] :as props}]

@@ -269,12 +269,184 @@
   (t/testing "Set background-overlay"
     (let [new-interaction (cti/set-background-overlay i3 true)]
       (t/is (not (:background-overlay i3)))
-      (t/is (:background-overlay new-interaction))))
-
-  ))
+      (t/is (:background-overlay new-interaction))))))
 
 
-(t/deftest interactions
+(t/deftest set-animation-type
+  (let [i1 cti/default-interaction
+        i2 (cti/set-animation-type i1 :dissolve)]
+
+    (t/testing "Set animation type nil"
+      (let [new-interaction
+            (cti/set-animation-type i1 nil)]
+        (t/is (nil? (:animation-type new-interaction)))))
+
+    (t/testing "Set animation type unchanged"
+      (let [new-interaction
+            (cti/set-animation-type i2 :dissolve)]
+        (t/is (= :dissolve (:animation-type new-interaction)))))
+
+    (t/testing "Set animation type changed"
+      (let [new-interaction
+            (cti/set-animation-type i2 :slide)]
+        (t/is (= :slide (:animation-type new-interaction)))))
+
+    (t/testing "Set animation type reset"
+      (let [new-interaction
+            (cti/set-animation-type i2 nil)]
+        (t/is (nil? (:animation-type new-interaction)))))
+
+    (t/testing "Set animation type dissolve"
+      (let [new-interaction
+            (cti/set-animation-type i1 :dissolve)]
+        (t/is (= :dissolve (:animation-type new-interaction)))
+        (t/is (= 300 (-> new-interaction :animation-opts :duration)))
+        (t/is (= :linear (-> new-interaction :animation-opts :easing)))))
+
+    (t/testing "Set animation type dissolve with previous data"
+      (let [interaction (assoc i1
+                               :animation-type :slide
+                               :animation-opts {:duration 1000
+                                                :easing :ease-out
+                                                :way :out
+                                                :direction :left
+                                                :offset-effect true})
+            new-interaction
+            (cti/set-animation-type interaction :dissolve)]
+        (t/is (= :dissolve (:animation-type new-interaction)))
+        (t/is (= 1000 (-> new-interaction :animation-opts :duration)))
+        (t/is (= :ease-out (-> new-interaction :animation-opts :easing)))))
+
+    (t/testing "Set animation type slide"
+      (let [new-interaction
+            (cti/set-animation-type i1 :slide)]
+        (t/is (= :slide (:animation-type new-interaction)))
+        (t/is (= 300 (-> new-interaction :animation-opts :duration)))
+        (t/is (= :linear (-> new-interaction :animation-opts :easing)))
+        (t/is (= :in (-> new-interaction :animation-opts :way)))
+        (t/is (= :right (-> new-interaction :animation-opts :direction)))
+        (t/is (= false (-> new-interaction :animation-opts :offset-effect)))))
+
+    (t/testing "Set animation type slide with previous data"
+      (let [interaction (assoc i1
+                               :animation-type :dissolve
+                               :animation-opts {:duration 1000
+                                                :easing :ease-out
+                                                :way :out
+                                                :direction :left
+                                                :offset-effect true})
+            new-interaction
+            (cti/set-animation-type interaction :slide)]
+        (t/is (= :slide (:animation-type new-interaction)))
+        (t/is (= 1000 (-> new-interaction :animation-opts :duration)))
+        (t/is (= :ease-out (-> new-interaction :animation-opts :easing)))
+        (t/is (= :out (-> new-interaction :animation-opts :way)))
+        (t/is (= :left (-> new-interaction :animation-opts :direction)))
+        (t/is (= true (-> new-interaction :animation-opts :offset-effect)))))
+
+    (t/testing "Set animation type push"
+      (let [new-interaction
+            (cti/set-animation-type i1 :push)]
+        (t/is (= :push (:animation-type new-interaction)))
+        (t/is (= 300 (-> new-interaction :animation-opts :duration)))
+        (t/is (= :linear (-> new-interaction :animation-opts :easing)))
+        (t/is (= :right (-> new-interaction :animation-opts :direction)))))
+
+    (t/testing "Set animation type push with previous data"
+      (let [interaction (assoc i1
+                               :animation-type :slide
+                               :animation-opts {:duration 1000
+                                                :easing :ease-out
+                                                :way :out
+                                                :direction :left
+                                                :offset-effect true})
+            new-interaction
+            (cti/set-animation-type interaction :push)]
+        (t/is (= :push (:animation-type new-interaction)))
+        (t/is (= 1000 (-> new-interaction :animation-opts :duration)))
+        (t/is (= :ease-out (-> new-interaction :animation-opts :easing)))
+        (t/is (= :left (-> new-interaction :animation-opts :direction)))))))
+
+
+(t/deftest invalid-animation
+  (let [i1 (cti/set-action-type cti/default-interaction :open-overlay)
+        i2 (cti/set-action-type cti/default-interaction :close-overlay)
+        i3 (cti/set-action-type cti/default-interaction :toggle-overlay)]
+
+    (t/testing "Cannot use animation push for an overlay action"
+      (let [bad-interaction-1 (assoc i1
+                                     :animation-type :push
+                                     :animation-opts {:duration 1000
+                                                      :easing :ease-out
+                                                      :direction :left})
+            bad-interaction-2 (assoc i2
+                                     :animation-type :push
+                                     :animation-opts {:duration 1000
+                                                      :easing :ease-out
+                                                      :direction :left})
+            bad-interaction-3 (assoc i3
+                                     :animation-type :push
+                                     :animation-opts {:duration 1000
+                                                      :easing :ease-out
+                                                      :direction :left})]
+        (t/is (cti/invalid-animation? bad-interaction-1))
+        (t/is (cti/invalid-animation? bad-interaction-2))
+        (t/is (cti/invalid-animation? bad-interaction-3))))
+
+    (t/testing "Cannot slide out for an open overlay action"
+      (let [bad-interaction (assoc i1
+                                   :animation-type :slide
+                                   :animation-opts {:duration 1000
+                                                    :easing :ease-out
+                                                    :way :out
+                                                    :direction :left
+                                                    :offset-effect true})]
+        (t/is (cti/invalid-animation? bad-interaction))))
+
+    (t/testing "Cannot slide in for a close overlay action"
+      (let [bad-interaction (assoc i2
+                                   :animation-type :slide
+                                   :animation-opts {:duration 1000
+                                                    :easing :ease-out
+                                                    :way :in
+                                                    :direction :left
+                                                    :offset-effect true})]
+        (t/is (cti/invalid-animation? bad-interaction))))
+
+    (t/testing "Remove animation if moving to an invalid state"
+      (let [interaction (cti/set-animation-type cti/default-interaction :push)
+            new-interaction (cti/set-action-type interaction :open-overlay)]
+        (t/is (nil? (:animation-type new-interaction)))
+        (t/is (nil? (:animation-opts new-interaction)))))))
+
+
+(t/deftest option-duration
+  (let [i1 cti/default-interaction
+        i2 (cti/set-animation-type cti/default-interaction :dissolve)]
+
+  (t/testing "Has duration"
+    (t/is (not (cti/has-duration i1)))
+    (t/is (cti/has-duration i2)))
+
+  (t/testing "Set duration"
+    (let [new-interaction (cti/set-duration i2 1000)]
+      (t/is (= 1000 (-> new-interaction :animation-opts :duration)))))))
+
+
+(t/deftest option-easing
+  (let [i1 cti/default-interaction
+        i2 (cti/set-animation-type cti/default-interaction :dissolve)]
+
+  (t/testing "Has easing"
+    (t/is (not (cti/has-easing i1)))
+    (t/is (cti/has-easing i2)))
+
+  (t/testing "Set easing"
+    (let [new-interaction (cti/set-easing i2 :ease-in)]
+      (t/is (= :ease-in (-> new-interaction :animation-opts :easing)))))))
+
+
+(t/deftest modify-interactions
   (let [i1 (cti/set-action-type cti/default-interaction :open-overlay)
         i2 (cti/set-action-type cti/default-interaction :close-overlay)
         i3 (cti/set-action-type cti/default-interaction :prev-screen)
@@ -298,7 +470,37 @@
     (t/testing "Update interaction"
       (let [new-interactions (cti/update-interaction interactions 1 #(cti/set-action-type % :open-url))]
         (t/is (= (count new-interactions) 2))
-        (t/is (= (:action-type (last new-interactions)) :open-url))))
+        (t/is (= (:action-type (last new-interactions)) :open-url))))))
 
-    ))
+
+(t/deftest remap-interactions
+  (let [frame1 (cpi/make-minimal-shape :frame)
+        frame2 (cpi/make-minimal-shape :frame)
+        frame3 (cpi/make-minimal-shape :frame)
+        frame4 (cpi/make-minimal-shape :frame)
+        frame5 (cpi/make-minimal-shape :frame)
+        frame6 (cpi/make-minimal-shape :frame)
+
+        objects {(:id frame3) frame3
+                 (:id frame4) frame4
+                 (:id frame5) frame5}
+
+        ids-map {(:id frame1) (:id frame4)
+                 (:id frame2) (:id frame5)}
+
+        i1 (cti/set-destination cti/default-interaction (:id frame1))
+        i2 (cti/set-destination cti/default-interaction (:id frame2))
+        i3 (cti/set-destination cti/default-interaction (:id frame3))
+        i4 (cti/set-destination cti/default-interaction nil)
+        i5 (cti/set-destination cti/default-interaction (:id frame6))
+
+        interactions [i1 i2 i3 i4 i5]]
+
+    (t/testing "Remap interactions"
+      (let [new-interactions (cti/remap-interactions interactions ids-map objects)]
+        (t/is (= (count new-interactions) 4))
+        (t/is (= (:id frame4) (:destination (get new-interactions 0))))
+        (t/is (= (:id frame5) (:destination (get new-interactions 1))))
+        (t/is (= (:id frame3) (:destination (get new-interactions 2))))
+        (t/is (nil? (:destination (get new-interactions 3))))))))
 
