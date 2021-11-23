@@ -409,6 +409,10 @@
   [interaction]
   (#{:navigate :open-overlay :close-overlay :toggle-overlay} (:action-type interaction)))
 
+(defn has-push
+  [interaction]
+  (= :navigate (:action-type interaction)))
+
 (defn invalid-animation?
   [interaction]
   ; Some specific combinations are forbidden, but may occur if the action type

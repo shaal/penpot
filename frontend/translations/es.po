@@ -2432,6 +2432,42 @@ msgid "workspace.options.interaction-destination"
 msgstr "Destino"
 
 #: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-duration"
+msgstr "Duración"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-easing"
+msgstr "Easing"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-easing-linear"
+msgstr "Linear"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-easing-ease"
+msgstr "Ease"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-easing-ease-in"
+msgstr "Ease in"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-easing-ease-out"
+msgstr "Ease out"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-easing-ease-in-out"
+msgstr "Ease in out"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-in"
+msgstr "Dentro"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-offset-effect"
+msgstr "Offset effect"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
 msgid "workspace.options.interaction-mouse-enter"
 msgstr "Pasar encima"
 
@@ -2470,6 +2506,10 @@ msgstr "Superposición: %s"
 #: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
 msgid "workspace.options.interaction-open-url"
 msgstr "Abrir url"
+
+#: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
+msgid "workspace.options.interaction-out"
+msgstr "Fuera"
 
 #: src/app/main/ui/workspace/sidebar/options/menus/interactions.cljs
 msgid "workspace.options.interaction-pos-bottom-center"

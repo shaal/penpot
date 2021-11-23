@@ -272,6 +272,23 @@
       (t/is (:background-overlay new-interaction))))))
 
 
+(t/deftest animation-checks
+  (let [i1 cti/default-interaction
+        i2 (cti/set-action-type i1 :open-overlay)
+        i3 (cti/set-action-type i1 :close-overlay)
+        i4 (cti/set-action-type i1 :toggle-overlay)
+        i5 (cti/set-action-type i1 :open-url)]
+
+    (t/testing "Has push?"
+      (t/is (cti/has-push i1))
+      (t/is (not (cti/has-push i2)))
+      (t/is (not (cti/has-push i3)))
+      (t/is (not (cti/has-push i4)))
+      (t/is (not (cti/has-push i5))))
+
+    ))
+
+
 (t/deftest set-animation-type
   (let [i1 cti/default-interaction
         i2 (cti/set-animation-type i1 :dissolve)]
