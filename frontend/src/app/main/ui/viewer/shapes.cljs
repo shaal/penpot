@@ -39,7 +39,7 @@
 (def viewer-interactions-show?
   (l/derived :interactions-show? refs/viewer-local))
 
-(defn activate-interaction
+(defn- activate-interaction
   [interaction shape base-frame frame-offset objects]
   (case (:action-type interaction)
     :navigate
@@ -94,7 +94,7 @@
     nil))
 
 ;; Perform the opposite action of an interaction, if possible
-(defn deactivate-interaction
+(defn- deactivate-interaction
   [interaction shape base-frame frame-offset objects]
   (case (:action-type interaction)
     :open-overlay
@@ -132,7 +132,7 @@
                                    background-overlay))))
     nil))
 
-(defn on-mouse-down
+(defn- on-mouse-down
   [event shape base-frame frame-offset objects]
   (let [interactions (->> (:interactions shape)
                           (filter #(or (= (:event-type %) :click)
@@ -142,7 +142,7 @@
       (doseq [interaction interactions]
         (activate-interaction interaction shape base-frame frame-offset objects)))))
 
-(defn on-mouse-up
+(defn- on-mouse-up
   [event shape base-frame frame-offset objects]
   (let [interactions (->> (:interactions shape)
                           (filter #(= (:event-type %) :mouse-press)))]
@@ -151,7 +151,7 @@
       (doseq [interaction interactions]
         (deactivate-interaction interaction shape base-frame frame-offset objects)))))
 
-(defn on-mouse-enter
+(defn- on-mouse-enter
   [event shape base-frame frame-offset objects]
   (let [interactions (->> (:interactions shape)
                           (filter #(or (= (:event-type %) :mouse-enter)
@@ -161,7 +161,7 @@
       (doseq [interaction interactions]
         (activate-interaction interaction shape base-frame frame-offset objects)))))
 
-(defn on-mouse-leave
+(defn- on-mouse-leave
   [event shape base-frame frame-offset objects]
   (let [interactions     (->> (:interactions shape)
                               (filter #(= (:event-type %) :mouse-leave)))
@@ -174,7 +174,7 @@
       (doseq [interaction interactions-inv]
         (deactivate-interaction interaction shape base-frame frame-offset objects)))))
 
-(defn on-load
+(defn- on-load
   [shape base-frame frame-offset objects]
   (let [interactions (->> (:interactions shape)
                           (filter #(= (:event-type %) :after-delay)))]

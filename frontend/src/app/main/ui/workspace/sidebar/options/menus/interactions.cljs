@@ -481,8 +481,7 @@
             [:div.element-set-actions-button
              {:class (dom/classnames :active (= direction :up))
                :on-click #(change-direction :up)}
-              i/animate-up]
-             ])
+              i/animate-up]])
 
          ; Duration
          (when (cti/has-duration interaction)
@@ -511,8 +510,7 @@
                :ease i/easing-ease
                :ease-in i/easing-ease-in
                :ease-out i/easing-ease-out
-               :ease-in-out i/easing-ease-in-out)]
-            ])
+               :ease-in-out i/easing-ease-in-out)]])
 
          ; Offset effect
          (when (cti/has-offset-effect interaction)
@@ -523,8 +521,7 @@
                       :checked (-> interaction :animation-opts :offset-effect)
                       :on-change change-offset-effect}]
              [:label {:for (str "offset-effect-" index)}
-              (tr "workspace.options.interaction-offset-effect")]]])
-])]]))
+              (tr "workspace.options.interaction-offset-effect")]]])])]]))
 
 (mf/defc interactions-menu
   [{:keys [shape] :as props}]
