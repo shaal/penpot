@@ -9,6 +9,7 @@
    [app.common.data :as d]
    [app.common.pages :as cp]
    [app.common.spec :as us]
+   [app.common.types.interactions :as cti]
    [app.common.uuid :as uuid]
    [app.main.constants :as c]
    [app.main.data.comments :as dcm]
@@ -335,23 +336,41 @@
         (rx/of (rt/nav screen pparams (assoc qparams :index index)))))))
 
 (defn go-to-frame
-  [frame-id]
-  (us/verify ::us/uuid frame-id)
-  (ptk/reify ::go-to-frame
-    ptk/UpdateEvent
-    (update [_ state]
-      (assoc-in state [:viewer-local :overlays] []))
+  ([frame-id] (go-to-frame frame-id nil nil))
+  ([frame-id animation-type animation-opts]
+   (us/verify ::us/uuid frame-id)
+   (us/verify (s/nilable ::cti/animation-type) animation-type)
+   ;; (us/verify (s/nilable ::cti/animation-opts-multi) animation-opts)
+   (ptk/reify ::go-to-frame
+     ptk/UpdateEvent
+     (update [_ state]
+       (let [route   (:route state)
+             qparams (:query-params route)
+             page-id (:page-id qparams)
+             index   (:index qparams)
+             frames  (get-in state [:viewer :pages page-id :frames])
+             frame   (get frames index)]
+         (js/console.log "animation-type" (clj->js animation-type))
+         (cond-> state
+           :always
+           (assoc-in [:viewer-local :overlays] [])
 
-    ptk/WatchEvent
-    (watch [_ state _]
-      (let [route   (:route state)
-            qparams (:query-params route)
-            page-id (:page-id qparams)
+           (some? animation-type)
+           (assoc-in [:viewer-local :current-animation]
+                     {:kind :go-to-frame
+                      :orig-frame (:id frame)
+                      :type animation-type
+                      :opts animation-opts}))))
 
-            frames  (get-in state [:viewer :pages page-id :frames])
-            index   (d/index-of-pred frames #(= (:id %) frame-id))]
-        (when index
-          (rx/of (go-to-frame-by-index index)))))))
+     ptk/WatchEvent
+     (watch [_ state _]
+       (let [route   (:route state)
+             qparams (:query-params route)
+             page-id (:page-id qparams)
+             frames  (get-in state [:viewer :pages page-id :frames])
+             index   (d/index-of-pred frames #(= (:id %) frame-id))]
+         (when index
+           (rx/of (go-to-frame-by-index index))))))))
 
 (defn go-to-frame-auto
   []
@@ -384,11 +403,13 @@
 ;; --- Overlays
 
 (defn open-overlay
-  [frame-id position close-click-outside background-overlay]
+  [frame-id position close-click-outside background-overlay animation-type animation-opts]
   (us/verify ::us/uuid frame-id)
   (us/verify ::us/point position)
   (us/verify (s/nilable ::us/boolean) close-click-outside)
   (us/verify (s/nilable ::us/boolean) background-overlay)
+  (us/verify (s/nilable ::cti/animation-type) animation-type)
+  ;; (us/verify (s/nilable ::cti/animation-opts-multi) animation-opts)
   (ptk/reify ::open-overlay
     ptk/UpdateEvent
     (update [_ state]
@@ -399,11 +420,19 @@
             frame    (d/seek #(= (:id %) frame-id) frames)
             overlays (get-in state [:viewer-local :overlays])]
         (if-not (some #(= (:frame %) frame) overlays)
-          (update-in state [:viewer-local :overlays] conj 
-                     {:frame frame
-                      :position position
-                      :close-click-outside close-click-outside
-                      :background-overlay background-overlay})
+          (cond-> state
+            :always
+            (update-in [:viewer-local :overlays] conj 
+                       {:frame frame
+                        :position position
+                        :close-click-outside close-click-outside
+                        :background-overlay background-overlay})
+            (some? animation-type)
+            (assoc-in [:viewer-local :current-animation]
+                      {:kind :open-overlay
+                       :overlay-id frame-id
+                       :type animation-type
+                       :opts animation-opts}))
           state)))))
 
 (defn toggle-overlay

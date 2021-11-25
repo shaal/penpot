@@ -91,7 +91,7 @@
 (defmethod animation-opts-spec :push [_]
   (s/keys :req-un [:animation-push/animation-opts]))
 
-(s/def ::animation-opts-cosa
+(s/def ::animation-opts-multi
   (s/multi-spec animation-opts-spec ::animation-type))
 
 ;; -- Options depending on action type
@@ -125,7 +125,7 @@
     (s/keys :opt-un [::destination
                      ::preserve-scroll
                      ::animation-type])
-    ::animation-opts-cosa))
+    ::animation-opts-multi))
 
 (defmethod action-opts-spec :open-overlay [_]
   (s/keys :req-un [::destination
@@ -134,7 +134,7 @@
           :opt-un [::close-click-outside
                    ::background-overlay
                    ::animation-type
-                   ::animation-opts-cosa]))
+                   ::animation-opts-multi]))
 
 (defmethod action-opts-spec :toggle-overlay [_]
   (s/keys :req-un [::destination
@@ -143,12 +143,12 @@
           :opt-un [::close-click-outside
                    ::background-overlay
                    ::animation-type
-                   ::animation-opts-cosa]))
+                   ::animation-opts-multi]))
 
 (defmethod action-opts-spec :close-overlay [_]
   (s/keys :opt-un [::destination
                    ::animation-type
-                   ::animation-opts-cosa]))
+                   ::animation-opts-multi]))
 
 (defmethod action-opts-spec :prev-screen [_]
   (s/keys :req-un []))

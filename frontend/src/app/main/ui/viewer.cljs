@@ -45,6 +45,7 @@
 
         nav-scroll (:nav-scroll local)
         current-viewport-ref (mf/use-ref nil)
+        current-animation (:current-animation local)
 
         page-id (or page-id (-> file :data :pages first))
 
@@ -57,8 +58,9 @@
         frames  (:frames page)
         frame   (get frames index)
 
-        prev-frame (when (> index 0)
-                     (get frames (dec index)))
+        prev-frame nil
+        ;; prev-frame (when (> index 0)
+        ;;              (get frames (dec index)))
 
         size    (mf/use-memo
                  (mf/deps frame zoom)
@@ -100,21 +102,28 @@
     (mf/use-layout-effect
       (mf/deps nav-scroll index)
       (fn []
+        ;; Set scroll position after navigate
         (when (number? nav-scroll)
           (let [viewer-section (dom/get-element "viewer-section")]
             (st/emit! (dv/reset-nav-scroll))
             (dom/set-scroll-pos! viewer-section nav-scroll)))
-        (let [viewport-container (mf/ref-val current-viewport-ref)]
-          (case index
-            1 (.animate viewport-container
-                        [#js {:opacity "0"}
-                         #js {:opacity "100"}]
-                        1000)
-            2 (.animate viewport-container
-                        [#js {:left "-100%"}
-                         #js {:left "0"}]
-                        1000)
-            nil))))
+
+        ;; Activate animation if needed
+        (when current-animation
+          )
+
+        ;; (let [viewport-container (mf/ref-val current-viewport-ref)]
+        ;;   (case index
+        ;;     1 (.animate viewport-container
+        ;;                 [#js {:opacity "0"}
+        ;;                  #js {:opacity "100"}]
+        ;;                 1000)
+        ;;     2 (.animate viewport-container
+        ;;                 [#js {:left "-100%"}
+        ;;                  #js {:left "0"}]
+        ;;                 1000)
+        ;;     nil))
+        ))
 
     [:div {:class (dom/classnames
                    :force-visible (:show-thumbnails local)

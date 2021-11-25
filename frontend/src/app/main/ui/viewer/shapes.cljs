@@ -49,7 +49,9 @@
                      (dom/get-scroll-pos viewer-section)
                      0)]
         (st/emit! (dv/set-nav-scroll scroll)
-                  (dv/go-to-frame frame-id))))
+                  (dv/go-to-frame frame-id
+                                  (:animation-type interaction)
+                                  (:animation-opts interaction)))))
 
     :open-overlay
     (let [dest-frame-id       (:destination interaction)
@@ -65,7 +67,9 @@
         (st/emit! (dv/open-overlay dest-frame-id
                                    position
                                    close-click-outside
-                                   background-overlay))))
+                                   background-overlay
+                                   (:animation-type interaction) 
+                                   (:animation-opts interaction)))))
 
     :toggle-overlay
     (let [frame-id            (:destination interaction)
@@ -129,7 +133,9 @@
         (st/emit! (dv/open-overlay dest-frame-id
                                    position
                                    close-click-outside
-                                   background-overlay))))
+                                   background-overlay
+                                   (:animation-type interaction) 
+                                   (:animation-opts interaction)))))
     nil))
 
 (defn- on-mouse-down
