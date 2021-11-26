@@ -139,7 +139,7 @@
   "Return a map without the keys provided
   in the `keys` parameter."
   [data keys]
-  (when data
+  (when (and (some? data) (map? data))
     (persistent!
      (reduce #(dissoc! %1 %2) (transient data) keys))))
 
